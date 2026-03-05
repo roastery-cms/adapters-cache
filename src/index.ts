@@ -3,18 +3,15 @@ import RedisMock from "ioredis-mock";
 import type { CacheEnvDependenciesDTO } from "./dtos";
 import { barista } from "@roastery/barista";
 
-export function CaffeineCache({
-	CACHE_PROVIDER,
-	REDIS_URL,
-}: CacheEnvDependenciesDTO) {
+export function cache({ CACHE_PROVIDER, REDIS_URL }: CacheEnvDependenciesDTO) {
 	return barista().decorate(
 		"cache",
 		CACHE_PROVIDER === "REDIS" && REDIS_URL
 			? (new RedisClient(REDIS_URL, {
 					connectionTimeout: 1000,
-				}) as CaffeineCacheInstance)
-			: (new RedisMock() as unknown as CaffeineCacheInstance),
+				}) as BaristaCacheInstance)
+			: (new RedisMock() as unknown as BaristaCacheInstance),
 	);
 }
 
-export type CaffeineCacheInstance = RedisClient;
+export type BaristaCacheInstance = RedisClient;
