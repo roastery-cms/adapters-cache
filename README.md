@@ -8,7 +8,7 @@ Redis and in-memory cache adapter with safe error handling for the [Roastery CMS
 
 **@roastery-adapters/cache** provides two core primitives for integrating cache into Roastery-based applications:
 
-- **Cache factory** — A factory function (`CaffeineCache`) that initializes a Redis or in-memory mock cache service, integrated with Roastery's dependency injection system via `@roastery/barista`.
+- **Cache factory** — A factory function (`cache`) that initializes a Redis or in-memory mock cache service, integrated with Roastery's dependency injection system via `@roastery/barista`.
 - **Safe decorator** — A method decorator (`SafeCache`) that wraps async methods with structured error handling for Redis connection failures, converting them into typed `CacheUnavailableException` errors.
 
 ## Technologies
@@ -37,12 +37,12 @@ bun add @roastery/barista @roastery/terroir @roastery/beans
 
 ## Cache factory
 
-`CaffeineCache` initializes a cache service backed by real Redis or an in-memory mock, depending on the provided configuration. It is decorated with `@roastery/barista` for dependency injection.
+`cache` initializes a cache service backed by real Redis or an in-memory mock, depending on the provided configuration. It is decorated with `@roastery/barista` for dependency injection.
 
 ```typescript
-import { CaffeineCache } from '@roastery-adapters/cache';
+import { cache } from '@roastery-adapters/cache';
 
-const cache = CaffeineCache({
+const cache = cache({
   CACHE_PROVIDER: 'REDIS',
   REDIS_URL: 'redis://localhost:6379',
 });
@@ -55,7 +55,7 @@ const cache = CaffeineCache({
 
 When `CACHE_PROVIDER` is `"MEMORY"` or `REDIS_URL` is not provided, the factory falls back to an in-memory mock (`ioredis-mock`).
 
-The returned instance is typed as `CaffeineCacheInstance` (alias for Bun's `RedisClient`).
+The returned instance is typed as `cacheInstance` (alias for Bun's `RedisClient`).
 
 ---
 
@@ -91,8 +91,8 @@ All matched errors are re-thrown as `CacheUnavailableException`. Unrecognized er
 ## Exports reference
 
 ```typescript
-import { CaffeineCache } from '@roastery-adapters/cache';              // cache factory function
-import type { CaffeineCacheInstance } from '@roastery-adapters/cache'; // RedisClient type alias
+import { cache } from '@roastery-adapters/cache';              // cache factory function
+import type { cacheInstance } from '@roastery-adapters/cache'; // RedisClient type alias
 import { SafeCache } from '@roastery-adapters/cache/decorators';       // safe method decorator
 import { CacheEnvDependenciesDTO } from '@roastery-adapters/cache/dtos'; // config schema + type
 import { CacheProviderDTO } from '@roastery-adapters/cache/dtos';      // "REDIS" | "MEMORY" schema + type
