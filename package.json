@@ -1,7 +1,7 @@
 {
 	"name": "@roastery-adapters/cache",
-	"description": "",
-	"version": "0.0.0",
+	"description": "Redis and in-memory cache adapter with safe error handling for the Roastery CMS ecosystem.",
+	"version": "0.0.1",
 	"type": "module",
 	"author": {
 		"name": "Alan Reis",
