@@ -1,7 +1,7 @@
 {
 	"name": "@roastery-adapters/cache",
 	"description": "Redis and in-memory cache adapter with safe error handling for the Roastery CMS ecosystem.",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"type": "module",
 	"author": {
 		"name": "Alan Reis",
@@ -57,17 +57,17 @@
 		"knip": "knip"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^20.4.1",
-		"@commitlint/config-conventional": "^20.4.1",
+		"@commitlint/cli": "^20.4.3",
+		"@commitlint/config-conventional": "^20.4.3",
 		"husky": "^9.1.7",
 		"knip": "^5.85.0"
 	},
 	"peerDependencies": {
-		"typescript": "^5",
+		"typescript": "^5.9.3",
 		"@types/bun": "latest",
 		"tsup": "^8.5.1",
-		"@roastery/barista": "^0.0.3",
-		"@roastery/terroir": "^0.0.8",
+		"@roastery/barista": "^0.0.5",
+		"@roastery/terroir": "^0.0.9",
 		"@roastery/beans": "^0.0.2"
 	},
 	"dependencies": {
