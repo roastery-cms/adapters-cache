@@ -1,7 +1,7 @@
 {
 	"name": "@roastery-adapters/cache",
 	"description": "Redis and in-memory cache adapter with safe error handling for the Roastery CMS ecosystem.",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"type": "module",
 	"author": {
 		"name": "Alan Reis",
@@ -52,7 +52,7 @@
 		"build": "biome check --fix && tsup 'src/**/index.ts' --format cjs,esm --dts --tsconfig tsconfig.build.json --clean --external bun",
 		"test:unit": "bun test --env-file=.env.testing",
 		"test:coverage": "bun test --env-file=.env.testing --coverage",
-		"setup": "bun run build && bun link",
+		"setup": "bun knip && bun run build && bun link",
 		"prepare": "husky || true",
 		"knip": "knip"
 	},
@@ -65,12 +65,12 @@
 	"peerDependencies": {
 		"typescript": "^5.9.3",
 		"@types/bun": "latest",
-		"tsup": "^8.5.1",
-		"@roastery/barista": "^0.0.5",
-		"@roastery/terroir": "^0.0.9",
-		"@roastery/beans": "^0.0.2"
+		"tsup": "^8.5.1"
 	},
 	"dependencies": {
+		"@roastery/barista": "^0.0.5",
+		"@roastery/beans": "^0.0.4",
+		"@roastery/terroir": "^0.0.9",
 		"ioredis-mock": "^8.13.1"
 	}
 }
