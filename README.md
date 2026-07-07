@@ -55,7 +55,7 @@ const cache = cache({
 
 When `CACHE_PROVIDER` is `"MEMORY"` or `REDIS_URL` is not provided, the factory falls back to an in-memory mock (`ioredis-mock`).
 
-The returned instance is typed as `cacheInstance` (alias for Bun's `RedisClient`).
+The returned instance is typed as `BaristaCacheInstance` (Bun's `RedisClient` intersected with an optional `flushall`). When the `MEMORY` provider is used, the underlying `ioredis-mock` instance really implements `flushall(): Promise<"OK">`, which is handy for clearing all keys (e.g. between test cases). With the `REDIS` provider, the instance is Bun's native `RedisClient`, which doesn't have `flushall` (only `send`), so the field is optional and should be accessed as `cacheInstance.flushall?.()`.
 
 ---
 
@@ -92,7 +92,7 @@ All matched errors are re-thrown as `CacheUnavailableException`. Unrecognized er
 
 ```typescript
 import { cache } from '@roastery-adapters/cache';              // cache factory function
-import type { cacheInstance } from '@roastery-adapters/cache'; // RedisClient type alias
+import type { BaristaCacheInstance } from '@roastery-adapters/cache'; // RedisClient type + optional flushall (MEMORY provider)
 import { SafeCache } from '@roastery-adapters/cache/decorators';       // safe method decorator
 import { CacheEnvDependenciesDTO } from '@roastery-adapters/cache/dtos'; // config schema + type
 import { CacheProviderDTO } from '@roastery-adapters/cache/dtos';      // "REDIS" | "MEMORY" schema + type
