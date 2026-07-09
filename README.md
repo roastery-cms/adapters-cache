@@ -6,16 +6,21 @@ Redis and in-memory cache adapter with safe error handling for the [Roastery CMS
 
 ## Overview
 
-**@roastery-adapters/cache** provides two core primitives for integrating cache into Roastery-based applications:
+**@roastery-adapters/cache** provides four primitives for integrating cache into Roastery-based applications:
 
-- **Cache factory** — A factory function (`cache`) that initializes a Redis or in-memory mock cache service, integrated with Roastery's dependency injection system via `@roastery/barista`.
-- **Safe decorator** — A method decorator (`SafeCache`) that wraps async methods with structured error handling for Redis connection failures, converting them into typed `CacheUnavailableException` errors.
+- **`Cache` capsule** — A [`@roastery/blend`](https://github.com/roastery-cms) capsule manifest (package root export) that declares the adapter's identity, environment needs, and plugin so the orchestration layer can validate and register it.
+- **`cache` plugin** — A Barista plugin (`/plugins` subpath) that decorates the host app with a Redis or in-memory cache instance based on the `CACHE_PROVIDER` environment variable.
+- **`SafeCache` decorator** — A method decorator (`/decorators` subpath) that wraps async methods with structured error handling for Redis connection failures, converting them into typed `CacheUnavailableException` errors.
+- **`BaristaCacheInstance` type** — The static type (`/types` subpath) of the decorated cache instance.
 
 ## Technologies
 
 | Tool | Purpose |
 |------|---------|
 | [Bun](https://bun.sh) | Native `RedisClient`, runtime, test runner, and package manager |
+| [@roastery/blend](https://github.com/roastery-cms) | Capsule manifest contract (`Blend`, `Plugin`) |
+| [@roastery/barista](https://github.com/roastery-cms) | Host app abstraction (Elysia-based) with typed `env` decorator |
+| [@roastery/terroir](https://github.com/roastery-cms) | Typed exceptions and TypeBox schemas |
 | [ioredis-mock](https://github.com/stipsan/ioredis-mock) | In-memory Redis mock for development and testing |
 | [tsup](https://tsup.egoist.dev) | Bundling to ESM + CJS with `.d.ts` generation |
 | [Knip](https://knip.dev) | Unused exports and dependency detection |
@@ -27,35 +32,61 @@ Redis and in-memory cache adapter with safe error handling for the [Roastery CMS
 bun add @roastery-adapters/cache
 ```
 
-**Peer dependencies** (install alongside):
+The `@roastery/*` runtime packages (`barista`, `beans`, `blend`, `terroir`) are regular dependencies and install automatically.
+
+**Peer dependencies** (provided by your project):
 
 ```bash
-bun add @roastery/barista @roastery/terroir @roastery/beans
+bun add -d typescript tsup @types/bun
 ```
 
 ---
 
-## Cache factory
+## Cache capsule (Blend)
 
-`cache` initializes a cache service backed by real Redis or an in-memory mock, depending on the provided configuration. It is decorated with `@roastery/barista` for dependency injection.
+The package root exports the `Cache` class, a `@roastery/blend` capsule manifest. It carries no behavior — it is a declarative identity card the orchestration layer reads to validate the host environment (`environmentNeeds`) and register the adapter (`plugin`).
 
 ```typescript
-import { cache } from '@roastery-adapters/cache';
+import { Cache } from '@roastery-adapters/cache';
 
-const cache = cache({
-  CACHE_PROVIDER: 'REDIS',
-  REDIS_URL: 'redis://localhost:6379',
-});
+const manifest = new Cache();
+
+// The orchestrator validates `manifest.environmentNeeds` against the
+// environment, then registers `manifest.plugin` on the host app.
+app.use(manifest.plugin);
 ```
 
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `CACHE_PROVIDER` | `"REDIS" \| "MEMORY"` | Yes | Selects the cache backend |
-| `REDIS_URL` | `string` (URL) | No | Redis connection URL (required when `CACHE_PROVIDER` is `"REDIS"`) |
+| Field | Value |
+|-------|-------|
+| `name` | `@roastery-adapters/cache` |
+| `environmentNeeds` | `CacheEnvDependenciesDTO` (see [Environment variables](#environment-variables)) |
+| `plugin` | The [`cache` plugin](#cache-plugin) |
+| `dependencies` | None — standalone capsule |
 
-When `CACHE_PROVIDER` is `"MEMORY"` or `REDIS_URL` is not provided, the factory falls back to an in-memory mock (`ioredis-mock`).
+---
 
-The returned instance is typed as `BaristaCacheInstance` (Bun's `RedisClient` intersected with an optional `flushall`). When the `MEMORY` provider is used, the underlying `ioredis-mock` instance really implements `flushall(): Promise<"OK">`, which is handy for clearing all keys (e.g. between test cases). With the `REDIS` provider, the instance is Bun's native `RedisClient`, which doesn't have `flushall` (only `send`), so the field is optional and should be accessed as `cacheInstance.flushall?.()`.
+## cache plugin
+
+`cache` is a Barista plugin: it receives the host app, reads `CACHE_PROVIDER`/`REDIS_URL` from the app's typed `env` decorator, and decorates the app with a `cache` instance.
+
+```typescript
+import { barista } from '@roastery/barista';
+import { cache } from '@roastery-adapters/cache/plugins';
+import { CacheEnvDependenciesDTO } from '@roastery-adapters/cache/dtos';
+
+const app = barista({ environmentDTOs: [CacheEnvDependenciesDTO] }).use(cache);
+
+await app.decorator.cache.set('greeting', 'hello');
+```
+
+Backend selection:
+
+- `CACHE_PROVIDER: "REDIS"` — Bun's native `RedisClient`, created with `connectionTimeout: 1000`. The client is lazy: it only connects when the first command is issued. Requires `REDIS_URL`.
+- `CACHE_PROVIDER: "MEMORY"` — an `ioredis-mock` instance; no Redis server required.
+
+If the app already carries a `cache` decorator, the plugin reuses that instance instead of creating a new client, making it idempotent across repeated registrations.
+
+The decorated instance is typed as `BaristaCacheInstance` (from `@roastery-adapters/cache/types`): Bun's `RedisClient` intersected with an optional `flushall`. When the `MEMORY` provider is used, the underlying `ioredis-mock` instance really implements `flushall(): Promise<"OK">`, which is handy for clearing all keys (e.g. between test cases). With the `REDIS` provider, the instance is Bun's native `RedisClient`, which doesn't have `flushall` (only `send`), so the field is optional and should be accessed as `cacheInstance.flushall?.()`.
 
 ---
 
@@ -88,14 +119,26 @@ All matched errors are re-thrown as `CacheUnavailableException`. Unrecognized er
 
 ---
 
+## Environment variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `CACHE_PROVIDER` | `"REDIS" \| "MEMORY"` | Yes | Selects the cache backend |
+| `REDIS_URL` | `string` (URL) | Only when `CACHE_PROVIDER` is `"REDIS"` | Redis connection URL |
+
+A missing `CACHE_PROVIDER` — or a missing `REDIS_URL` when the provider is `"REDIS"` — makes the plugin throw `InvalidEnvironmentException`.
+
+---
+
 ## Exports reference
 
 ```typescript
-import { cache } from '@roastery-adapters/cache';              // cache factory function
-import type { BaristaCacheInstance } from '@roastery-adapters/cache'; // RedisClient type + optional flushall (MEMORY provider)
-import { SafeCache } from '@roastery-adapters/cache/decorators';       // safe method decorator
-import { CacheEnvDependenciesDTO } from '@roastery-adapters/cache/dtos'; // config schema + type
-import { CacheProviderDTO } from '@roastery-adapters/cache/dtos';      // "REDIS" | "MEMORY" schema + type
+import { Cache } from '@roastery-adapters/cache';                         // Blend capsule manifest
+import { cache } from '@roastery-adapters/cache/plugins';                 // Barista plugin
+import type { BaristaCacheInstance } from '@roastery-adapters/cache/types'; // RedisClient type + optional flushall (MEMORY provider)
+import { SafeCache } from '@roastery-adapters/cache/decorators';          // safe method decorator
+import { CacheEnvDependenciesDTO } from '@roastery-adapters/cache/dtos';  // env schema + type
+import { CacheProviderDTO } from '@roastery-adapters/cache/dtos';         // "REDIS" | "MEMORY" schema + type
 ```
 
 ---
@@ -115,8 +158,14 @@ bun run build
 # Check for unused exports and dependencies
 bun run knip
 
-# Full setup (build + bun link)
+# Full setup (knip + build + bun link)
 bun run setup
+```
+
+Unit tests use the `MEMORY` provider and need no external services. To exercise the `REDIS` provider against a real server, start the bundled Redis container:
+
+```bash
+docker compose up -d   # redis:alpine on localhost:6379
 ```
 
 ## License
