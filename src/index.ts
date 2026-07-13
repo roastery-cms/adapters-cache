@@ -1,4 +1,10 @@
-import { Blend, type Owner, type Plugin, type Tag, type Version } from "@roastery/blend";
+import {
+	Blend,
+	type Owner,
+	type Plugin,
+	type Tag,
+	type Version,
+} from "@roastery/blend";
 import type { t } from "@roastery/terroir";
 import { CacheEnvDependenciesDTO } from "./dtos";
 import { cache } from "./plugins";
@@ -43,6 +49,6 @@ export class Cache extends Blend {
 	override license: string = "MIT";
 	override environmentNeeds: t.TSchema = CacheEnvDependenciesDTO;
 	override plugin: Plugin = cache;
-    override dependencies = {};
+	override dependencies = {};
 	override tag?: Tag | undefined = undefined;
 }
