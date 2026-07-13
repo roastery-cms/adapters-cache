@@ -7,7 +7,7 @@
       "dependencies": {
         "@roastery/barista": "^0.1.1",
         "@roastery/beans": "^0.1.1",
-        "@roastery/blend": "^0.0.2",
+        "@roastery/blend": "^0.0.3",
         "@roastery/terroir": "^0.1.0",
         "ioredis-mock": "^8.13.1",
       },
@@ -195,7 +195,7 @@
 
     "@roastery/beans": ["@roastery/beans@0.1.2", "", { "dependencies": { "@roastery/terroir": "^0.1.0", "slugify": "^1.6.6" }, "peerDependencies": { "@types/bun": "latest", "tsup": "^8.5.1", "typescript": "^5.9.3" } }, "sha512-7Nivxek4naCP4P60lwKHNbVe+WSUqeDaWssCtooJvReWDo/eqRcaG8MVe6pguhjzh0rR2qiFE5IcECLXxJ+oVQ=="],
 
-    "@roastery/blend": ["@roastery/blend@0.0.2", "", { "dependencies": { "@roastery/terroir": "^0.1.0" }, "peerDependencies": { "@types/bun": "latest", "tsup": "^8.5.1", "typescript": "^5" } }, "sha512-lE4BxESbFjnBUzi2WUApYa39+P5JzNOZTUFfV1WDuoBJNuuQKSjnbUR4kdsKJ8Q71871jB9EUHbuYAOpwQA/tQ=="],
+    "@roastery/blend": ["@roastery/blend@0.0.3", "", { "dependencies": { "@roastery/terroir": "^0.1.0" }, "peerDependencies": { "@types/bun": "latest", "tsup": "^8.5.1", "typescript": "^5" } }, "sha512-yOFPWhyS6aXtPTosVo3l94+1Uj5hxMcbNQGdNuQrJVuOx9llRCwyxsZYcOATmiiRmuSHa56KMKAX/6m1Jjs6ew=="],
 
     "@roastery/terroir": ["@roastery/terroir@0.1.0", "", { "dependencies": { "@sinclair/typebox": ">= 0.34.0 < 1", "uuid": "^13.0.0" }, "peerDependencies": { "@types/bun": "latest", "tsup": "^8.5.1", "typescript": "^5" } }, "sha512-aEH/EwYbyHKGpScCF29mcju/e/8+hoYNSs/c9XQ1Cnyt5VzsvGBOLe8fYRxZp8ht2x1yiGUj+EdakQtblMe04A=="],
 
